@@ -1,0 +1,193 @@
+/*************************
+ * 1. 기본 데이터 구조
+ *************************/
+
+// 유형 점수 (1~9)
+const scores = {
+  1: 0, 2: 0, 3: 0, 4: 0, 5: 0,
+  6: 0, 7: 0, 8: 0, 9: 0
+};
+
+// 사용자 답변 저장
+// 예: answers[1] = 'A'
+const answers = {};
+
+
+/*************************
+ * 2. 답변 저장 함수
+ *************************/
+
+function setAnswer(questionNumber, value) {
+  answers[questionNumber] = value;
+}
+
+
+/*************************
+ * 3. 점수 유틸 함수
+ *************************/
+
+function addScore(types, point) {
+  types.forEach(t => {
+    scores[t] += point;
+  });
+}
+
+
+/*************************
+ * 4. 1~4번 문항 점수 계산
+ *************************/
+
+function calcQ1toQ4() {
+  // Q1
+  answers[1] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
+
+  // Q2
+  answers[2] === 'A'
+    ? addScore([2,4,6,9], 1)
+    : addScore([1,3,5,7,8], 1);
+
+  // Q3
+  answers[3] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
+
+  // Q4
+  answers[4] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
+}
+
+
+/*************************
+ * 5. A / B 우세 판단
+ *************************/
+
+function getMajorityAB() {
+  let A = 0, B = 0;
+  for (let i = 1; i <= 4; i++) {
+    answers[i] === 'A' ? A++ : B++;
+  }
+  return { A, B };
+}
+
+
+/*************************
+ * 6. 후반 문항 점수 계산
+ *************************/
+
+function calcLaterQuestions() {
+  const { A, B } = getMajorityAB();
+
+  /* 1~4번 A 우세 */
+  if (A > B) {
+    if (answers[5] === 'A') {
+      addScore([1], 2);
+    } else {
+      addScore([3,8], 2);
+      answers[6] === 'A'
+        ? addScore([3], 2)
+        : addScore([8], 2);
+    }
+  }
+
+  /* 1~4번 B 우세 */
+  if (B > A) {
+    // Q5
+    answers[5] === 'A'
+      ? addScore([2,9], 2)
+      : addScore([4,6], 2);
+
+    // 감정 / 관계 지향 (Q2 = A)
+    if (answers[2] === 'A') {
+      if (answers[7] === 'A') {
+        answers[8] === 'A'
+          ? addScore([2], 3)
+          : addScore([9], 3);
+      } else {
+        answers[9] === 'A'
+          ? addScore([4], 3)
+          : addScore([6], 3);
+      }
+    }
+
+    // 이성 / 목표 지향 (Q2 = B)
+    if (answers[2] === 'B') {
+      answers[10] === 'A'
+        ? addScore([5], 3)
+        : addScore([7], 3);
+    }
+  }
+
+  /* 1~4 모두 B & Q2 = B */
+  const allB = [1,2,3,4].every(i => answers[i] === 'B');
+  if (allB && answers[2] === 'B') {
+    answers[11] === 'A'
+      ? addScore([5], 3)
+      : addScore([7], 3);
+  }
+}
+
+
+/*************************
+ * 7. 최종 결과 계산
+ *************************/
+
+function calculateResult() {
+  resetScores();
+  calcQ1toQ4();
+  calcLaterQuestions();
+  return getFinalTypes();
+}
+
+function resetScores() {
+  for (let i = 1; i <= 9; i++) {
+    scores[i] = 0;
+  }
+}
+
+function getFinalTypes() {
+  const max = Math.max(...Object.values(scores));
+  return Object.keys(scores)
+    .filter(t => scores[t] === max)
+    .map(Number);
+}
+
+
+/*************************
+ * 8. 결과 출력용 메시지
+ *************************/
+
+function getTieMessage(a, b) {
+  return `${a}번과 ${b}번의 점수가 동일합니다.
+유형 설명 후에 무슨 유형에 더 가까운 지 판단해주세요.`;
+}
+
+
+/*************************
+ * 9. 예시: 결과 렌더링
+ *************************/
+
+// 단일 유형
+function showSingleType(type) {
+  console.log(`당신의 유형은 ${type}유형입니다.`);
+}
+
+// 동점
+function showTieTypes(types) {
+  console.log(getTieMessage(types[0], types[1]));
+}
+
+// 실행 예시
+function submitTest() {
+  const result = calculateResult();
+
+  if (result.length === 1) {
+    showSingleType(result[0]);
+  } else {
+    showTieTypes(result);
+  }
+
+  console.log("점수 상세:", scores);
+}
