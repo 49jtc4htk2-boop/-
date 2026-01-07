@@ -1,69 +1,51 @@
-/*************************
- * 1. 기본 데이터 구조
- *************************/
-
-// 유형 점수 (1~9)
+// 유형 점수
 const scores = {
   1: 0, 2: 0, 3: 0, 4: 0, 5: 0,
   6: 0, 7: 0, 8: 0, 9: 0
 };
 
-// 사용자 답변 저장
-// 예: answers[1] = 'A'
+// 사용자 답변
 const answers = {};
-
-
-/*************************
- * 2. 답변 저장 함수
- *************************/
-
-function setAnswer(questionNumber, value) {
-  answers[questionNumber] = value;
+function setAnswer(q, value) {
+  answers[q] = value;
 }
-
-
-/*************************
- * 3. 점수 유틸 함수
- *************************/
-
 function addScore(types, point) {
-  types.forEach(t => {
-    scores[t] += point;
-  });
+  types.forEach(t => scores[t] += point);
 }
-
-
-/*************************
- * 4. 1~4번 문항 점수 계산
- *************************/
-
 function calcQ1toQ4() {
-  // Q1
   answers[1] === 'A'
     ? addScore([1,3,8], 1)
     : addScore([2,4,5,6,7,9], 1);
 
-  // Q2
   answers[2] === 'A'
     ? addScore([2,4,6,9], 1)
     : addScore([1,3,5,7,8], 1);
 
-  // Q3
   answers[3] === 'A'
     ? addScore([1,3,8], 1)
     : addScore([2,4,5,6,7,9], 1);
 
-  // Q4
   answers[4] === 'A'
     ? addScore([1,3,8], 1)
     : addScore([2,4,5,6,7,9], 1);
 }
+function calcQ1toQ4() {
+  answers[1] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
 
+  answers[2] === 'A'
+    ? addScore([2,4,6,9], 1)
+    : addScore([1,3,5,7,8], 1);
 
-/*************************
- * 5. A / B 우세 판단
- *************************/
+  answers[3] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
 
+  answers[4] === 'A'
+    ? addScore([1,3,8], 1)
+    : addScore([2,4,5,6,7,9], 1);
+}
 function getMajorityAB() {
   let A = 0, B = 0;
   for (let i = 1; i <= 4; i++) {
@@ -71,16 +53,10 @@ function getMajorityAB() {
   }
   return { A, B };
 }
-
-
-/*************************
- * 6. 후반 문항 점수 계산
- *************************/
-
 function calcLaterQuestions() {
   const { A, B } = getMajorityAB();
 
-  /* 1~4번 A 우세 */
+  // A 우세
   if (A > B) {
     if (answers[5] === 'A') {
       addScore([1], 2);
@@ -92,14 +68,12 @@ function calcLaterQuestions() {
     }
   }
 
-  /* 1~4번 B 우세 */
+  // B 우세
   if (B > A) {
-    // Q5
     answers[5] === 'A'
       ? addScore([2,9], 2)
       : addScore([4,6], 2);
 
-    // 감정 / 관계 지향 (Q2 = A)
     if (answers[2] === 'A') {
       if (answers[7] === 'A') {
         answers[8] === 'A'
@@ -112,28 +86,13 @@ function calcLaterQuestions() {
       }
     }
 
-    // 이성 / 목표 지향 (Q2 = B)
     if (answers[2] === 'B') {
       answers[10] === 'A'
         ? addScore([5], 3)
         : addScore([7], 3);
     }
   }
-
-  /* 1~4 모두 B & Q2 = B */
-  const allB = [1,2,3,4].every(i => answers[i] === 'B');
-  if (allB && answers[2] === 'B') {
-    answers[11] === 'A'
-      ? addScore([5], 3)
-      : addScore([7], 3);
-  }
 }
-
-
-/*************************
- * 7. 최종 결과 계산
- *************************/
-
 function calculateResult() {
   resetScores();
   calcQ1toQ4();
@@ -142,9 +101,7 @@ function calculateResult() {
 }
 
 function resetScores() {
-  for (let i = 1; i <= 9; i++) {
-    scores[i] = 0;
-  }
+  for (let i = 1; i <= 9; i++) scores[i] = 0;
 }
 
 function getFinalTypes() {
@@ -153,41 +110,102 @@ function getFinalTypes() {
     .filter(t => scores[t] === max)
     .map(Number);
 }
+const typeDescriptions = {
+  1: `
+  <strong>1유형 · 완벽주의자</strong><br>
+  당신은 기준과 원칙을 중요하게 여기며,
+  책임감 있게 행동하는 사람입니다.
+  옳다고 믿는 방향으로 세상을 바로잡으려는
+  내적 동기가 강합니다.
+  `,
 
+  2: `
+  <strong>2유형 · 조력가</strong><br>
+  당신은 사람의 감정에 민감하며,
+  관계 속에서 자신의 가치를 느낍니다.
+  타인을 돕는 과정에서 보람을 느끼지만,
+  자신의 욕구를 미루는 경향이 있습니다.
+  `,
 
-/*************************
- * 8. 결과 출력용 메시지
- *************************/
+  3: `
+  <strong>3유형 · 성취자</strong><br>
+  당신은 목표를 세우고
+  성과를 만들어내는 데 능한 사람입니다.
+  유능해 보이고 싶은 욕구가
+  삶의 큰 동력입니다.
+  `,
 
-function getTieMessage(a, b) {
-  return `${a}번과 ${b}번의 점수가 동일합니다.
-유형 설명 후에 무슨 유형에 더 가까운 지 판단해주세요.`;
-}
+  4: `
+  <strong>4유형 · 예술가</strong><br>
+  당신은 감정의 깊이가 깊고,
+  진정성과 독특함을 중요하게 여깁니다.
+  평범함보다는 의미 있는 삶을 추구합니다.
+  `,
 
+  5: `
+  <strong>5유형 · 관찰자</strong><br>
+  당신은 분석적이며,
+  충분히 이해한 뒤 행동하려 합니다.
+  혼자만의 시간과 지적 독립성을 중요시합니다.
+  `,
 
-/*************************
- * 9. 예시: 결과 렌더링
- *************************/
+  6: `
+  <strong>6유형 · 충성가</strong><br>
+  당신은 책임감이 강하고,
+  위험을 미리 감지하는 능력이 뛰어납니다.
+  안전과 신뢰를 중요하게 여깁니다.
+  `,
 
-// 단일 유형
-function showSingleType(type) {
-  console.log(`당신의 유형은 ${type}유형입니다.`);
-}
+  7: `
+  <strong>7유형 · 낙천가</strong><br>
+  당신은 밝고 에너지가 넘치며,
+  새로운 가능성을 발견하는 데 능합니다.
+  자유와 즐거움을 추구합니다.
+  `,
 
-// 동점
-function showTieTypes(types) {
-  console.log(getTieMessage(types[0], types[1]));
-}
+  8: `
+  <strong>8유형 · 도전자</strong><br>
+  당신은 강한 추진력과 존재감을 지닌 사람입니다.
+  불의에 맞서고,
+  상황을 주도하려는 성향이 강합니다.
+  `,
 
-// 실행 예시
-function submitTest() {
+  9: `
+  <strong>9유형 · 평화주의자</strong><br>
+  당신은 조화를 중시하며,
+  갈등을 중재하는 데 능합니다.
+  편안한 관계와 안정감을 추구합니다.
+  `
+};
+function renderResult() {
   const result = calculateResult();
 
-  if (result.length === 1) {
-    showSingleType(result[0]);
-  } else {
-    showTieTypes(result);
-  }
+  const titleEl = document.getElementById("result-title");
+  const descEl = document.getElementById("result-desc");
+  const tieEl = document.getElementById("tie-notice");
 
-  console.log("점수 상세:", scores);
+  tieEl.innerHTML = "";
+
+  if (result.length === 1) {
+    const type = result[0];
+    titleEl.innerText = `당신의 유형은 ${type}유형입니다.`;
+    descEl.innerHTML = typeDescriptions[type];
+  } else {
+    titleEl.innerText = `${result[0]}유형과 ${result[1]}유형의 점수가 동일합니다.`;
+    tieEl.innerText =
+      `${result[0]}번과 ${result[1]}번의 점수가 동일합니다.
+유형 설명 후에 무슨 유형에 더 가까운 지 판단해주세요.`;
+
+    descEl.innerHTML = `
+      <div class="tie-box">
+        <div>${typeDescriptions[result[0]]}</div>
+        <div>${typeDescriptions[result[1]]}</div>
+      </div>
+    `;
+  }
 }
+<h2 id="result-title"></h2>
+<div id="tie-notice"></div>
+<div id="result-desc"></div>
+
+<button onclick="renderResult()">결과 보기</button>
